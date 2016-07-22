@@ -10,6 +10,7 @@ from base64 import b64encode
 from .utils import get_pokemon_name
 from .transform import transform_from_wgs_to_gcj
 from .customLog import printPokemon
+from . import config
 
 db = SqliteDatabase('pogom.db')
 log = logging.getLogger(__name__)
@@ -95,6 +96,8 @@ def parse_map(map_dict):
                 'longitude': p['longitude'],
                 'disappear_time': d_t
             }
+            if get_pokemon_name(p['pokemon_id']) in config['NOTIFICATION_LIST']:
+                send_notification(p)
 
         for f in cell.get('forts', []):
             if f.get('type') == 1:  # Pokestops
@@ -140,6 +143,11 @@ def parse_map(map_dict):
     if gyms:
         log.info("Upserting {} gyms".format(len(gyms)))
         bulk_upsert(Gym, gyms)
+
+def send_notification(pokemon):
+    email = config['NOTIFICATION_EMAIL']
+
+
 
 def bulk_upsert(cls, data):
     num_rows = len(data.values())

@@ -20,6 +20,8 @@ class Pogom(Flask):
         self.route("/next_loc", methods=['POST'])(self.next_loc)
         self.route("/next_address", methods=['GET'])(self.next_address)
         self.route("/update_notification_email", methods=['GET'])(self.update_notification_email)
+        self.route("/update_notification_list", methods=['GET'])(self.update_notification_list)
+        self.rout("/get_config", methods=['GET'])(self.get_config)
 
     def fullmap(self):
         return render_template('map.html',
@@ -67,7 +69,19 @@ class Pogom(Flask):
             return 'ok, next address set to {0}'.format(loc.address.encode('utf-8'))
 
     def update_notification_email(self):
-        config['NOTIFICATION_EMAIL'] = request.args.get('email', type=str)
+        email = request.args.get('email', type=str)
+        config['NOTIFICATION_EMAIL'] = email
+        return 'ok, updated email to {0}'.format(email)
+
+    def update_notification_list(self):
+        notificationlist = request.args.get('list', type=str)
+        poke_list = []
+        for item in notificationlist.split(','):
+            poke_list.append(item.trim())
+        return 'ok, updated list to {0}'.format(poke_list)
+
+    def get_config(self):
+        return jsonify(config)
 
 class CustomJSONEncoder(JSONEncoder):
 
