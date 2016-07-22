@@ -21,7 +21,7 @@ class Pogom(Flask):
         self.route("/next_address", methods=['GET'])(self.next_address)
         self.route("/update_notification_email", methods=['GET'])(self.update_notification_email)
         self.route("/update_notification_list", methods=['GET'])(self.update_notification_list)
-        self.rout("/get_config", methods=['GET'])(self.get_config)
+        self.route("/get_config", methods=['GET'])(self.get_config)
 
     def fullmap(self):
         return render_template('map.html',
