@@ -5,6 +5,7 @@ import calendar
 from flask import Flask, jsonify, render_template, request
 from flask.json import JSONEncoder
 from datetime import datetime
+from geopy.geocoders import GoogleV3
 
 from . import config
 from .models import Pokemon, Gym, Pokestop
@@ -17,6 +18,8 @@ class Pogom(Flask):
         self.route("/", methods=['GET'])(self.fullmap)
         self.route("/raw_data", methods=['GET'])(self.raw_data)
         self.route("/next_loc", methods=['POST'])(self.next_loc)
+        self.route("/next_address", methods=['GET'])(self.next_address)
+        self.route("/update_notification_email", methods=['GET'])(self.update_notification_email)
 
     def fullmap(self):
         return render_template('map.html',
@@ -41,14 +44,30 @@ class Pogom(Flask):
     def next_loc(self):
         lat = request.args.get('lat', type=float)
         lon = request.args.get('lon', type=float)
+
         if not (lat and lon):
             print('[-] Invalid next location: %s,%s' % (lat, lon))
             return 'bad parameters', 400
         else:
             config['ORIGINAL_LATITUDE'] = lat
             config['ORIGINAL_LONGITUDE'] = lon
-            return 'ok'
+            return 'ok, location set to: %s,%s' % (lat, lon)
 
+    def next_address(self):
+        address = request.args.get('address', type=str)
+
+        if not address:
+            print('[-] Invalid next address: %s' % address)
+            return 'bad parameters', 400
+        else:
+            geolocator = GoogleV3()
+            loc = geolocator.geocode(address)
+            config['ORIGINAL_LATITUDE'] = loc.latitude
+            config['ORIGINAL_LONGITUDE'] = loc.longitude
+            return 'ok, next address set to {0}'.format(loc.address.encode('utf-8'))
+
+    def update_notification_email(self):
+        config['NOTIFICATION_EMAIL'] = request.args.get('email', type=str)
 
 class CustomJSONEncoder(JSONEncoder):
 
